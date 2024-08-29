@@ -1,70 +1,62 @@
 package com.emazon.api_stockre.domain.model;
+
 import java.util.List;
+
 public class Pagina<T> {
-		private List<T> contenido;
-		private int numeroPagina;
-		private int tamanoPagina;
-		private long totalElementos;
-		private int totalPaginas;
+	private List<T> content;
+	private int currentPage;
+	private int pageSize;
+	private int totalPages;
+	private long totalElements;
+	public Pagina() {
 
-		public Pagina(List<T> contenido, int numeroPagina, int tamanoPagina, long totalElementos) {
-			this.contenido = contenido;
-			this.numeroPagina = numeroPagina;
-			this.tamanoPagina = tamanoPagina;
-			this.totalElementos = totalElementos;
-			this.totalPaginas = (int) Math.ceil((double) totalElementos / tamanoPagina);
-		}
-
-		public List<T> getContenido() {
-			return contenido;
-		}
-
-		public void setContenido(List<T> contenido) {
-			this.contenido = contenido;
-		}
-
-		public int getNumeroPagina() {
-			return numeroPagina;
-		}
-
-		public void setNumeroPagina(int numeroPagina) {
-			this.numeroPagina = numeroPagina;
-		}
-
-		public int getTamanoPagina() {
-			return tamanoPagina;
-		}
-
-		public void setTamanoPagina(int tamanoPagina) {
-			this.tamanoPagina = tamanoPagina;
-		}
-
-		public long getTotalElementos() {
-			return totalElementos;
-		}
-
-		public void setTotalElementos(long totalElementos) {
-			this.totalElementos = totalElementos;
-		}
-
-		public int getTotalPaginas() {
-			return totalPaginas;
-		}
-
-		public void setTotalPaginas(int totalPaginas) {
-			this.totalPaginas = totalPaginas;
-		}
-
-		@Override
-		public String toString() {
-			return "Pagina{" +
-				"contenido=" + contenido +
-				", numeroPagina=" + numeroPagina +
-				", tamanoPagina=" + tamanoPagina +
-				", totalElementos=" + totalElementos +
-				", totalPaginas=" + totalPaginas +
-				'}';
-		}
+	}
+	public Pagina(List<T> content, int currentPage, int pageSize, int totalPages, long totalElements) {
+		this.content = content;
+		this.currentPage = currentPage;
+		this.pageSize = pageSize;
+		this.totalPages = totalPages;
+		this.totalElements = totalElements;
 	}
 
+	public List<T> getContent() {
+		return content;
+	}
+
+	public void setContent(List<T> content) {
+		this.content = content;
+	}
+
+	public int getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(int currentPage) {
+		this.currentPage = currentPage;
+	}
+
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+
+	public int getTotalPages() {
+		return totalPages;
+	}
+
+	public void setTotalPages(int totalPages) {
+		this.totalPages = totalPages;
+	}
+
+	public long getTotalElements() {
+		return totalElements;
+	}
+
+	public void setTotalElements(long totalElements) {
+		this.totalElements = totalElements;
+	}
+}
 
