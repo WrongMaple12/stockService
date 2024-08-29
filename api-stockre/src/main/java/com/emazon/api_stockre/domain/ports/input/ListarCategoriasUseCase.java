@@ -1,8 +1,9 @@
 package com.emazon.api_stockre.domain.ports.input;
-import com.emazon.api_stockre.aplication.dto.CategoriaDTO;
 
-import java.util.List;
+import com.emazon.api_stockre.domain.model.Categoria;
+import com.emazon.api_stockre.domain.model.Pagina;
+
 
 public interface ListarCategoriasUseCase {
-	List<CategoriaDTO> listarCategorias(int pagina, int tamano, String ordenarPor, String direccion);
+	Pagina<Categoria> listarCategorias(int pagina, int tamano, String direccionOrden, String campoOrden);
 }

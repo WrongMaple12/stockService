@@ -11,8 +11,6 @@ public class CrearCategoriaServicioImpl implements CrearCategoriaServicio {
 
 	private final DataCategoriaRepositorio categoriaRepositorio;
 
-
-
 	public CrearCategoriaServicioImpl(DataCategoriaRepositorio categoriaRepositorio) {
 		this.categoriaRepositorio = categoriaRepositorio;
 
@@ -25,13 +23,10 @@ public class CrearCategoriaServicioImpl implements CrearCategoriaServicio {
 		categoriaE.setNombre(categoria.getNombre());
 		categoriaE.setDescripcion(categoria.getDescripcion());
 
-
 		categoriaRepositorio.save(categoriaE);
-	}
 
+	}
 	public boolean categoriaExistePorNombre(String nombre) {
 		return categoriaRepositorio.existsByNombre(nombre);
 	}
-
-
 }

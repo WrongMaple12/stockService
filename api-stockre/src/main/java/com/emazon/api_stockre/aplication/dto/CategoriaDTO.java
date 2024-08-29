@@ -11,6 +11,17 @@ public class CategoriaDTO {
 	@Column(length = 90, nullable = false)
 	private String descripcion;
 
+	public CategoriaDTO() {
+
+	}
+
+	public CategoriaDTO( String nombre, String descripcion) {
+		this.nombre = nombre;
+		this.descripcion = descripcion;
+	}
+
+
+
 	public CategoriaDTO(Long id, String nombre, String descripcion) {
 		this.id = id;
 		this.nombre = nombre;
