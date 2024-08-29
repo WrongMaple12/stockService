@@ -1,6 +1,6 @@
 package com.emazon.api_stockre.aplication.service.impl;
-
-import com.emazon.api_stockre.aplication.dto.CategoriaDTO;
+import com.emazon.api_stockre.domain.model.Categoria;
+import com.emazon.api_stockre.domain.model.Pagina;
 import com.emazon.api_stockre.infrastructure.entities.CategoriaEntity;
 import com.emazon.api_stockre.infrastructure.repositories.DataCategoriaRepositorio;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,14 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
-import java.util.List;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-
- class ListarCategoriasServiceImplTest {
-
+class ListarCategoriasServiceImplTest {
 	@Mock
 	private DataCategoriaRepositorio categoriaRepositorio;
 
@@ -27,84 +30,50 @@ import static org.mockito.Mockito.when;
 		MockitoAnnotations.openMocks(this);
 	}
 
-	private CategoriaEntity createCategoriaEntity(long id, String nombre, String descripcion) {
-		CategoriaEntity categoria = new CategoriaEntity();
-		categoria.setId(id);
-		categoria.setNombre(nombre);
-		categoria.setDescripcion(descripcion);
-		return categoria;
+	@Test
+	void testListarCategoriasConDatos() {
+		CategoriaEntity categoriaEntity = new CategoriaEntity();
+		categoriaEntity.setId(1L);
+		categoriaEntity.setNombre("Electronics");
+		categoriaEntity.setDescripcion("Electronics and gadgets");
+
+		Page<CategoriaEntity> pagedResponse = new PageImpl<>(
+			Collections.singletonList(categoriaEntity),
+			PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nombre")),
+			1
+		);
+
+		when(categoriaRepositorio.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nombre"))))
+			.thenReturn(pagedResponse);
+
+		Pagina<Categoria> resultado = listarCategoriasService.listarCategorias(0, 10, "asc", "nombre");
+
+		assertEquals(1, resultado.getContent().size());
+		assertEquals("Electronics", resultado.getContent().get(0).getNombre());
+		assertEquals("Electronics and gadgets", resultado.getContent().get(0).getDescripcion());
+		assertEquals(0, resultado.getCurrentPage());
+		assertEquals(10, resultado.getPageSize());
+		assertEquals(1, resultado.getTotalPages());
+		assertEquals(1, resultado.getTotalElements());
 	}
 
 	@Test
-	void testListarCategoriasOrdenarPorNombreAscendente() {
-		// Dado
-		CategoriaEntity categoria1 = createCategoriaEntity(1L, "B", "Descripcion B");
-		CategoriaEntity categoria2 = createCategoriaEntity(2L, "A", "Descripcion A");
-		CategoriaEntity categoria3 = createCategoriaEntity(3L, "C", "Descripcion C");
+	void testListarCategoriasSinDatos() {
+		Page<CategoriaEntity> pagedResponse = new PageImpl<>(
+			Collections.emptyList(),
+			PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nombre")),
+			0
+		);
 
-		when(categoriaRepositorio.findAll()).thenReturn(List.of(categoria3, categoria1, categoria2));
+		when(categoriaRepositorio.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nombre"))))
+			.thenReturn(pagedResponse);
 
-		// Cuando
-		List<CategoriaDTO> resultado = listarCategoriasService.listarCategorias(0, 2, "nombre", "asc");
+		Pagina<Categoria> resultado = listarCategoriasService.listarCategorias(0, 10, "asc", "nombre");
 
-		// Entonces
-		assertEquals(2, resultado.size());
-		assertEquals("A", resultado.get(0).getNombre());
-		assertEquals("B", resultado.get(1).getNombre());
-	}
-
-	@Test
-	void testListarCategoriasOrdenarPorDescripcionDescendente() {
-		// Dado
-		CategoriaEntity categoria1 = createCategoriaEntity(1L, "A", "Descripcion C");
-		CategoriaEntity categoria2 = createCategoriaEntity(2L, "B", "Descripcion A");
-		CategoriaEntity categoria3 = createCategoriaEntity(3L, "C", "Descripcion B");
-
-		when(categoriaRepositorio.findAll()).thenReturn(List.of(categoria1, categoria2, categoria3));
-
-		// Cuando
-		List<CategoriaDTO> resultado = listarCategoriasService.listarCategorias(0, 2, "descripcion", "desc");
-
-		// Entonces
-		assertEquals(2, resultado.size());
-		assertEquals("Descripcion C", resultado.get(0).getDescripcion());
-		assertEquals("Descripcion B", resultado.get(1).getDescripcion());
-	}
-
-	@Test
-	void testListarCategoriasPaginacion() {
-		// Dado
-		CategoriaEntity categoria1 = createCategoriaEntity(1L, "A", "Descripcion A");
-		CategoriaEntity categoria2 = createCategoriaEntity(2L, "B", "Descripcion B");
-		CategoriaEntity categoria3 = createCategoriaEntity(3L, "C", "Descripcion C");
-
-		when(categoriaRepositorio.findAll()).thenReturn(List.of(categoria1, categoria2, categoria3));
-
-		// Cuando
-		List<CategoriaDTO> resultado = listarCategoriasService.listarCategorias(1, 2, "nombre", "asc");
-
-		// Entonces
-		assertEquals(1, resultado.size());
-		assertEquals("C", resultado.get(0).getNombre());
-	}
-
-	@Test
-	void testListarCategoriasOrdenarPorNombreAscendenteCasoDeMayusculasYMinusculas() {
-		// Dado
-		CategoriaEntity categoria1 = createCategoriaEntity(1L, "b", "Descripcion B");
-		CategoriaEntity categoria2 = createCategoriaEntity(2L, "a", "Descripcion A");
-		CategoriaEntity categoria3 = createCategoriaEntity(3L, "C", "Descripcion C");
-
-		when(categoriaRepositorio.findAll()).thenReturn(List.of(categoria1, categoria2, categoria3));
-
-		// Cuando
-		List<CategoriaDTO> resultado = listarCategoriasService.listarCategorias(0, 3, "nombre", "asc");
-
-		// Entonces
-		assertEquals(3, resultado.size());
-		assertEquals("a", resultado.get(0).getNombre());
-		assertEquals("b", resultado.get(1).getNombre());
-		assertEquals("C", resultado.get(2).getNombre());
+		assertEquals(0, resultado.getContent().size());
+		assertEquals(0, resultado.getCurrentPage());
+		assertEquals(10, resultado.getPageSize());
+		assertEquals(0, resultado.getTotalPages());
+		assertEquals(0, resultado.getTotalElements());
 	}
 }
-

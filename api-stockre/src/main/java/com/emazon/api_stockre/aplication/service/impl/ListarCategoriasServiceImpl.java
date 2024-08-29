@@ -1,5 +1,6 @@
 package com.emazon.api_stockre.aplication.service.impl;
-import com.emazon.api_stockre.aplication.dto.CategoriaDTO;
+import com.emazon.api_stockre.domain.model.Categoria;
+import com.emazon.api_stockre.domain.model.Pagina;
 import com.emazon.api_stockre.domain.ports.input.ListarCategoriasUseCase;
 import com.emazon.api_stockre.infrastructure.entities.CategoriaEntity;
 import com.emazon.api_stockre.infrastructure.repositories.DataCategoriaRepositorio;
@@ -17,25 +18,33 @@ import java.util.List;
 public class ListarCategoriasServiceImpl implements ListarCategoriasUseCase {
 	private final DataCategoriaRepositorio categoriaRepositorio;
 
+
 	public ListarCategoriasServiceImpl(DataCategoriaRepositorio categoriaRepositorio) {
 		this.categoriaRepositorio = categoriaRepositorio;
 	}
 
 	@Override
-	public List<CategoriaDTO> listarCategorias(int pagina, int tamano, String ordenarPor, String direccion) {
+	public Pagina<Categoria> listarCategorias(int pagina, int tamano, String direccionOrden, String campoOrden) {
+		Sort.Direction sortDirection = "desc".equalsIgnoreCase(direccionOrden) ? Sort.Direction.DESC : Sort.Direction.ASC;
+		Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(sortDirection, campoOrden));
 
-		Sort sort = Sort.by(Sort.Direction.fromString(direccion), ordenarPor);
+		Page<CategoriaEntity> resultPage = categoriaRepositorio.findAll(pageable);
 
-
-		Pageable pageable = PageRequest.of(pagina, tamano, sort);
-
-
-		Page<CategoriaEntity> categoriasPage = categoriaRepositorio.findAll(pageable);
-
-
-		return categoriasPage.stream()
-			.map(categoria -> new CategoriaDTO(categoria.getId(), categoria.getNombre(), categoria.getDescripcion()))
+		List<Categoria> categorias = resultPage.getContent().stream()
+			.map(this::convertToDomain)
 			.toList();
+
+		return new Pagina<>(
+			categorias,
+			resultPage.getNumber(),
+			resultPage.getSize(),
+			resultPage.getTotalPages(),
+			resultPage.getTotalElements()
+		);
+	}
+
+	private Categoria convertToDomain(CategoriaEntity entity) {
+		return new Categoria(entity.getId(),entity.getNombre(), entity.getDescripcion());
 	}
 
 }

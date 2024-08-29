@@ -1,108 +1,103 @@
 package com.emazon.api_stockre.infrastructure.controllers;
 
-import com.emazon.api_stockre.aplication.dto.CategoriaDTO;
+import com.emazon.api_stockre.domain.model.Categoria;
+import com.emazon.api_stockre.domain.model.Pagina;
 import com.emazon.api_stockre.domain.ports.input.CrearCategoriaServicio;
-import com.emazon.api_stockre.aplication.service.impl.ListarCategoriasServiceImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.emazon.api_stockre.domain.ports.input.ListarCategoriasUseCase;
+import com.emazon.api_stockre.aplication.dto.CategoriaDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import java.util.List;
+import java.util.Collections;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 class CategoriaControladorTest {
+
+	@InjectMocks
+	private CategoriaControlador categoriaControlador;
 
 	@Mock
 	private CrearCategoriaServicio crearCategoriaServicio;
 
 	@Mock
-	private ListarCategoriasServiceImpl listarCategoriasService;
-
-	@InjectMocks
-	private CategoriaControlador categoriaControlador;
-
-	private MockMvc mockMvc;
-	private ObjectMapper objectMapper;
+	private ListarCategoriasUseCase listarCategoriasUseCase;
 
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		mockMvc = MockMvcBuilders.standaloneSetup(categoriaControlador).build();
-		objectMapper = new ObjectMapper();
 	}
 
 	@Test
-	void testCrearCategoriaExito() throws Exception {
-		// Dado
-		CategoriaDTO categoriaDTO = new CategoriaDTO(1L, "Categoria1", "Descripcion de Categoria");
+	void crearCategoria_Success() {
+		CategoriaDTO categoriaDTO = new CategoriaDTO("nombreCategoria", "descripcionCategoria");
+		ResponseEntity<String> response = categoriaControlador.crearCategoria(categoriaDTO);
 
-		// Cuando
-		mockMvc.perform(post("/api/categorias")
-				.contentType("application/json")
-				.content(objectMapper.writeValueAsString(categoriaDTO)))
-			.andExpect(status().isCreated())
-			.andExpect(content().string("Categoría creada con éxito"));
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		assertEquals("Categoría creada con éxito", response.getBody());
 	}
 
 	@Test
-	void testCrearCategoriaDescripcionNula() throws Exception {
-		// Dado
-		CategoriaDTO categoriaDTO = new CategoriaDTO(1L, "Categoria1", null);
+	void crearCategoria_NombreYDescripcionRequeridos() {
+		CategoriaDTO categoriaDTO = new CategoriaDTO(null, null);
+		ResponseEntity<String> response = categoriaControlador.crearCategoria(categoriaDTO);
 
-		// Cuando
-		mockMvc.perform(post("/api/categorias")
-				.contentType("application/json")
-				.content(objectMapper.writeValueAsString(categoriaDTO)))
-			.andExpect(status().isBadRequest())
-			.andExpect(content().string("La descripción no puede ser nula o vacía."));
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("Nombre y descripción son obligatorios.", response.getBody());
 	}
 
 	@Test
-	void testListarCategoriasConDatos() throws Exception {
-		// Dado
-		CategoriaDTO categoriaDTO1 = new CategoriaDTO(1L, "Categoria1", "Descripcion 1");
-		CategoriaDTO categoriaDTO2 = new CategoriaDTO(2L, "Categoria2", "Descripcion 2");
-		List<CategoriaDTO> categorias = List.of(categoriaDTO1, categoriaDTO2);
+	void crearCategoria_NombreLargo() {
+		CategoriaDTO categoriaDTO = new CategoriaDTO("nombreCategoriaMuyLargoQueExcedeElLimiteDeCincuentaCaracteres", "descripcionCategoria");
+		ResponseEntity<String> response = categoriaControlador.crearCategoria(categoriaDTO);
 
-		when(listarCategoriasService.listarCategorias(0, 10, "nombre", "asc")).thenReturn(categorias);
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("El nombre de la categoría no puede superar los 50 caracteres.", response.getBody());
+	}
+	@Test
+	void CrearCategoria_DescripcionLarga() {
+		CategoriaDTO categoriaDTO = new CategoriaDTO("Electronics", "A".repeat(91));
 
-		// Cuando
-		mockMvc.perform(get("/api/categorias")
-				.param("pagina", "0")
-				.param("tamano", "10")
-				.param("ordenarPor", "nombre")
-				.param("direccion", "asc"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$", hasSize(2)))
-			.andExpect(jsonPath("$[0].nombre", is("Categoria1")))
-			.andExpect(jsonPath("$[1].nombre", is("Categoria2")));
+		ResponseEntity<String> response = categoriaControlador.crearCategoria(categoriaDTO);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("La descripción de la categoría no puede superar los 90 caracteres.", response.getBody());
+	}
+
+
+
+
+
+	@Test
+	void crearCategoria_ErrorInterno() {
+		CategoriaDTO categoriaDTO = new CategoriaDTO("nombreCategoria", "descripcionCategoria");
+
+		doThrow(new RuntimeException("Error interno")).when(crearCategoriaServicio).crearCategoria(any(Categoria.class));
+
+		ResponseEntity<String> response = categoriaControlador.crearCategoria(categoriaDTO);
+
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		assertEquals("Error interno del servidor.", response.getBody());
 	}
 
 	@Test
-	void testListarCategoriasSinDatos() throws Exception {
-		// Dado
-		when(listarCategoriasService.listarCategorias(0, 10, "nombre", "asc")).thenReturn(List.of());
+	void listarCategorias_Success() {
+		Pagina<Categoria> paginaEsperada = new Pagina<>(
+			Collections.singletonList(new Categoria("nombreCategoria", "descripcionCategoria")),
+			0, 10, 1, 1L
+		);
 
-		// Cuando
-		mockMvc.perform(get("/api/categorias")
-				.param("pagina", "0")
-				.param("tamano", "10")
-				.param("ordenarPor", "nombre")
-				.param("direccion", "asc"))
-			.andExpect(status().isNoContent());
+		when(listarCategoriasUseCase.listarCategorias(0, 10, "asc", "nombre")).thenReturn(paginaEsperada);
+
+		ResponseEntity<Pagina<Categoria>> response = categoriaControlador.listarCategorias(0, 10, "asc", "nombre");
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(paginaEsperada, response.getBody());
 	}
 }
-
