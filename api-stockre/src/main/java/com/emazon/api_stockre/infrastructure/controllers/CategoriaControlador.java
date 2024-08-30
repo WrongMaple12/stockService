@@ -6,6 +6,11 @@ import com.emazon.api_stockre.domain.ports.input.CrearCategoriaServicio;
 import com.emazon.api_stockre.domain.model.Categoria;
 
 import com.emazon.api_stockre.domain.ports.input.ListarCategoriasUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -26,6 +31,14 @@ public class CategoriaControlador {
 		this.listarCategoriasUseCase = listarCategoriasUseCase;
 
 	}
+	@Operation(summary = "Crear una nueva categoría",
+		description = "Este endpoint permite crear una nueva categoría. Se validan la longitud y existencia del nombre y la descripción.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "Categoría creada con éxito"),
+		@ApiResponse(responseCode = "400", description = "Error en la solicitud, nombre o descripción inválidos", content = @Content(schema = @Schema(type = "string"))),
+		@ApiResponse(responseCode = "409", description = "Nombre de categoría ya existe", content = @Content(schema = @Schema(type = "string"))),
+		@ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(schema = @Schema(type = "string")))
+	})
 
 	@PostMapping
 	public ResponseEntity<String> crearCategoria(@RequestBody CategoriaDTO categoriaDTO) {
@@ -53,6 +66,12 @@ public class CategoriaControlador {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor.");
 		}
 	}
+	@Operation(summary = "Listar categorías paginadas",
+		description = "Este endpoint permite listar categorías de manera paginada, con opciones de ordenación y filtrado.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Lista de categorías devuelta con éxito"),
+		@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 
 	@GetMapping
 	public ResponseEntity<Pagina<Categoria>> listarCategorias(

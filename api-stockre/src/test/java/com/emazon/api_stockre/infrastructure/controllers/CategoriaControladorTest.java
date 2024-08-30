@@ -70,10 +70,6 @@ class CategoriaControladorTest {
 		assertEquals("La descripción de la categoría no puede superar los 90 caracteres.", response.getBody());
 	}
 
-
-
-
-
 	@Test
 	void crearCategoria_ErrorInterno() {
 		CategoriaDTO categoriaDTO = new CategoriaDTO("nombreCategoria", "descripcionCategoria");
