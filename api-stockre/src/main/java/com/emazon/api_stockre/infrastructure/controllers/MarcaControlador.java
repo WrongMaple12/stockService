@@ -2,23 +2,24 @@ package com.emazon.api_stockre.infrastructure.controllers;
 
 import com.emazon.api_stockre.aplication.dto.MarcaDTO;
 import com.emazon.api_stockre.domain.model.Marca;
+import com.emazon.api_stockre.domain.model.PaginaMarca;
 import com.emazon.api_stockre.domain.ports.input.CrearMarcaServicio;
+import com.emazon.api_stockre.domain.ports.input.ListarMarcasUseCase;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/marca")
 public class MarcaControlador {
 	private final CrearMarcaServicio crearMarcaServicio;
+	private final ListarMarcasUseCase listarMarcasUseCase;
 
-	public MarcaControlador(CrearMarcaServicio crearMarcaServicio) {
+	public MarcaControlador(CrearMarcaServicio crearMarcaServicio, ListarMarcasUseCase listarMarcasUseCase) {
 		this.crearMarcaServicio = crearMarcaServicio;
+		this.listarMarcasUseCase = listarMarcasUseCase;
 	}
 	@PostMapping
 	public ResponseEntity<String> crearMarca(@RequestBody MarcaDTO marcaDTO) {
@@ -45,6 +46,16 @@ public class MarcaControlador {
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor.");
 		}
+	}
+	@GetMapping
+	public ResponseEntity<PaginaMarca<Marca>> listarMarcas(
+		@RequestParam(value = "pagina", defaultValue = "0") int pagina,
+		@RequestParam(value = "tamaño", defaultValue = "10") int tamano,
+		@RequestParam(value = "direccionOrden", defaultValue = "asc") String direccionOrden,
+		@RequestParam(value = "campoOrden", defaultValue = "nombre") String campoOrden) {
+
+		PaginaMarca<Marca> marcasPaginadas = listarMarcasUseCase.listarMarcas(pagina, tamano, direccionOrden, campoOrden);
+		return ResponseEntity.ok(marcasPaginadas);
 	}
 
 }

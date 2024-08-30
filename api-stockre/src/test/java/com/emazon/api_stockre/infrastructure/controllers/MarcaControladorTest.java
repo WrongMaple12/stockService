@@ -1,7 +1,9 @@
 package com.emazon.api_stockre.infrastructure.controllers;
 import com.emazon.api_stockre.aplication.dto.MarcaDTO;
 import com.emazon.api_stockre.domain.model.Marca;
+import com.emazon.api_stockre.domain.model.PaginaMarca;
 import com.emazon.api_stockre.domain.ports.input.CrearMarcaServicio;
+import com.emazon.api_stockre.domain.ports.input.ListarMarcasUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,10 +18,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import jakarta.validation.ConstraintViolationException;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -31,6 +34,8 @@ class MarcaControladorTest {
 
 	@InjectMocks
 	private MarcaControlador marcaControlador;
+	@Mock
+	private ListarMarcasUseCase listarMarcasUseCase;
 
 	@BeforeEach
 	void setUp() {
@@ -102,5 +107,19 @@ class MarcaControladorTest {
 				.content("{\"nombre\":\"Nombre de Marca\", \"descripcion\":\"Descripción de Marca\"}"))
 			.andExpect(status().isInternalServerError())
 			.andExpect(content().string("Error interno del servidor."));
+	}
+	@Test
+	void listarMarcas_Success() {
+		PaginaMarca<Marca> paginaEsperada = new PaginaMarca<>(
+			Collections.singletonList(new Marca("nombreMarca", "descripcionMarca")),
+			0, 10, 1, 1L
+		);
+
+		when(listarMarcasUseCase.listarMarcas(0, 10, "asc", "nombre")).thenReturn(paginaEsperada);
+
+		ResponseEntity<PaginaMarca<Marca>> response = marcaControlador.listarMarcas(0, 10, "asc", "nombre");
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(paginaEsperada, response.getBody());
 	}
 }
