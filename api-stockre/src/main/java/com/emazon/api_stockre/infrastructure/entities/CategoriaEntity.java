@@ -26,6 +26,9 @@ public class CategoriaEntity {
 		this.descripcion = descripcion;
 	}
 
+	public CategoriaEntity(Long id) {
+		this.id = id;
+	}
 
 	public Long getId() {
 		return id;
